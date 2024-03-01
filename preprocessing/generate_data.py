@@ -40,7 +40,13 @@ if not os.path.isfile(os.path.join(CURRENCY_PREFIX + "forex.csv")):
 
 #Grabbing relevant data for dataframe.
 STOCKS_TO_GRAB = ["AAPL", "GOOG", "MSFT", "AMZN"] # Limited list for testing
-CURRENCIES_TO_GRAB = ["USD", "EUR", "JPY", "AUD", "CAD"]
+CURRENCIES_TO_GRAB = ["USD/EUR", "USD/JPY", "USD/AUD", "USD/CAD"] # Means rate of USD to X currency
+
+#NOTE: Date ranges in currency dataset:
+# USD/CAD - 2003/09/17 - 2021/08/30
+# USD/EUR - 2003/12/01 - 2021/08/30
+# USD/JPY - 1996/10/30 - 2021/08/30
+# USD/AUD - 2006/05/16 - 2021/08/30
 
 #Convert stock names into their file locations
 stock_files = []
@@ -55,5 +61,23 @@ for file in stock_files:
 
 #Turn currency csv into dataframe
 currency_df = pandas.read_csv(CURRENCY_PREFIX + "forex.csv")
+
+currency_df['date'] = pandas.to_datetime(currency_df['date'])
+
+# currency_df = currency_df.set_index(['date'])
+
+# Define your date range
+start_date = '2004-11-08'
+end_date = '2005-02-18'
+
+# Create a boolean mask for rows within the date range
+mask = (currency_df['date'] >= start_date) & (currency_df['date'] <= end_date)
+
+# Apply the mask to filter rows within the date range
+rows_within_range = currency_df[mask]
+
+# Print or further process the filtered rows
+print(rows_within_range)
+# print(currency_df.loc['2004-11-08' : '2005-02-18'])
 
 #Concatendate all dataframes
