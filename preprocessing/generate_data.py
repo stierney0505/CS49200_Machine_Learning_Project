@@ -121,3 +121,9 @@ for currency in currency_frame_list:
 
 print(final_df.shape)
 print(final_df)
+
+try:
+    final_df.to_csv(os.path.join(os.getcwd() + '\\preprocessing\\output\\output.csv'), index=False)
+    print("DataFrame successfully written to CSV")
+except Exception as e:
+    print("Error writing DataFrame to CSV:", str(e))
