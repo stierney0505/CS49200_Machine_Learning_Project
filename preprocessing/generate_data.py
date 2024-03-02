@@ -60,7 +60,7 @@ currency_df['date'] = pandas.to_datetime(currency_df['date'])
 
 # Define date range
 START_DATE = '2006-05-16'
-END_DATE = '2010-01-01'
+END_DATE = '2016-01-01'
 
 # Create a boolean mask for rows within the date range
 currency_date_mask = (currency_df['date'] >= START_DATE) & (currency_df['date'] <= END_DATE)
@@ -72,8 +72,8 @@ for currency in CURRENCIES_TO_GRAB:
     mask = intermediate_currency_df['slug'] == currency
     currency_frame_list.append(intermediate_currency_df[mask])
 
-for c in currency_frame_list:
-    print(c.head())
+# for c in currency_frame_list:
+#     print(c.head())
 
 ###
 # Converting stock data to dataframe
@@ -97,9 +97,27 @@ for file in stock_files:
     stock_date_mask = (df['date'] >= START_DATE) & (df['date'] <= END_DATE)
     stock_frame_list.append(df[stock_date_mask])
 
-for stock in stock_frame_list:
-    print(stock.head())
+# for stock in stock_frame_list:
+#     print(stock.head())
 
 ###
 # Concatendate all dataframes
 ###
+
+final_df = pandas.DataFrame()
+i = 0
+for stock in stock_frame_list:
+    try:
+        final_df = final_df.merge(right=stock, on='date', suffixes=('', '_' + STOCKS_TO_GRAB[i]))
+    except KeyError:
+        #catches first pass where final_df is empty
+        final_df = stock
+    i += 1
+
+i = 0
+for currency in currency_frame_list:
+    final_df = final_df.merge(right=currency, on='date', suffixes=('', '_' + CURRENCIES_TO_GRAB[i]))
+    i += 1
+
+print(final_df.shape)
+print(final_df)
