@@ -2,6 +2,7 @@
 import os
 import zipfile
 import pandas
+from sklearn.preprocessing import MinMaxScaler
 
 # pylint: disable=locally-disabled, line-too-long
 
@@ -72,9 +73,6 @@ for currency in CURRENCIES_TO_GRAB:
     mask = intermediate_currency_df['slug'] == currency
     currency_frame_list.append(intermediate_currency_df[mask])
 
-# for c in currency_frame_list:
-#     print(c.head())
-
 ###
 # Converting stock data to dataframe
 ###
@@ -97,9 +95,6 @@ for file in stock_files:
     stock_date_mask = (df['date'] >= START_DATE) & (df['date'] <= END_DATE)
     stock_frame_list.append(df[stock_date_mask])
 
-# for stock in stock_frame_list:
-#     print(stock.head())
-
 ###
 # Concatendate all dataframes
 ###
@@ -119,8 +114,23 @@ for currency in currency_frame_list:
     final_df = final_df.merge(right=currency, on='date', suffixes=('', '_' + CURRENCIES_TO_GRAB[i]))
     i += 1
 
+###
+# Data normalization/manipulation
+###
+
+# Dropping unnecessary columns that are just the currency name
+columns_to_drop = [col for col in final_df.columns if col.startswith('slug') or col.startswith('currency')]
+final_df.drop(columns=columns_to_drop, inplace=True)
+
+scaler = MinMaxScaler()
+
+#Convert Date column into numeric
+final_df['date'] = pandas.to_numeric(pandas.to_datetime(final_df['date']))
+
+final_df[final_df.columns] = scaler.fit_transform(final_df)
+
+
 print(final_df.shape)
-print(final_df)
 
 try:
     final_df.to_csv(os.path.join(os.getcwd() + '\\preprocessing\\output\\output.csv'), index=False)
