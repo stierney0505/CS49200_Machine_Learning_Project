@@ -5,7 +5,7 @@ import pandas
 from sklearn.preprocessing import MinMaxScaler
 
 # This script uses the Kaggle datasets to generate a dataset that will be used for testing until
-# our continuous data gathering method is done. 
+# our continuous data gathering method is completed. 
 
 # pylint: disable=locally-disabled, line-too-long
 
@@ -139,7 +139,7 @@ final_df[final_df.columns] = scaler.fit_transform(final_df)
 print(final_df.shape)
 
 try:
-    final_df.to_csv(os.path.join(os.getcwd() + '\\preprocessing\\output\\output.csv'), index=False)
+    final_df.to_csv(os.path.join(os.getcwd() + '\\preprocessing\\output\\output_from_temp.csv'), index=False)
     print("DataFrame successfully written to CSV")
 except Exception as e:
     print("Error writing DataFrame to CSV:", str(e))
