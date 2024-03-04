@@ -118,7 +118,7 @@ for currency in currency_frame_list:
 # Data normalization/manipulation
 ###
 
-# Dropping unnecessary columns that are just the currency name
+# Dropping unnecessary columns that are just the currency name/stock name
 columns_to_drop = [col for col in final_df.columns if col.startswith('slug') or col.startswith('currency')]
 final_df.drop(columns=columns_to_drop, inplace=True)
 
