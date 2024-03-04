@@ -1,5 +1,6 @@
 import pandas as pd
 from typing_extensions import Self, List
+from sklearn.preprocessing import MinMaxScaler
 
 # pylint: disable=locally-disabled, line-too-long
 
@@ -23,7 +24,7 @@ class Preprocessor:
         for col in columns:
             new_columns.append(col + '_' + suffix)
 
-        dataframe.columns = new_columns
+        dataframe.columns = new_columns #PBR?
 
     # end rename_columns
 
@@ -47,8 +48,8 @@ class Preprocessor:
         # Concatenate all dataframes into one dataframe
         for currency_df, stock_df in zip(currency_frames, stock_frames):
             # Convert 'timestamp' column to pandas date object
-            currency_df['timestamp'] = pd.to_datetime(currency_df['timestamp'])
-            stock_df['timestamp'] = pd.to_datetime(stock_df['timestamp'])
+            currency_df['timestamp'] = pd.to_datetime(currency_df['timestamp']).dt.date
+            stock_df['timestamp'] = pd.to_datetime(stock_df['timestamp']).dt.date
 
             # Catch first pass where self.df is empty
             if self.df.empty:
@@ -61,9 +62,23 @@ class Preprocessor:
 
         # end concatenate
 
-    def apply_preprocessing(self: Self, minmax=True, moving_average=True, rsi_index=True):
+    def apply_preprocessing(self: Self, minmax=True, moving_average=True, rsi_index=True) -> pd.DataFrame:
         """Applies various preprocessing options to the 
         final dataframe."""
-        pass
+        # Convert timestamp to numerical value
+        self.df['timestamp'] = pd.to_numeric(self.df['timestamp'])
+
+        # Apply MinMaxing from sklean
+        if minmax:
+            scaler = MinMaxScaler()
+            self.df[self.df.columns] = scaler.fit_transform(self.df)
+
+        if moving_average:
+            pass #TODO
+
+        if rsi_index:
+            pass #TODO
+
+        return self.df
 
         # end apply_preprocessing
