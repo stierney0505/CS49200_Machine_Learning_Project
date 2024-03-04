@@ -1,0 +1,5 @@
+# Global
+**/.env
+
+# API Wrapper
+api-wrapper/*.csv
