@@ -4,6 +4,9 @@ import zipfile
 import pandas
 from sklearn.preprocessing import MinMaxScaler
 
+# This script uses the Kaggle datasets to generate a dataset that will be used for testing until
+# our continuous data gathering method is done. 
+
 # pylint: disable=locally-disabled, line-too-long
 
 # Unzip the data/grab the data? X
@@ -12,7 +15,10 @@ from sklearn.preprocessing import MinMaxScaler
 # Add new features to the dataframe
 # Save dataframe as CSV
 
+###
 # Unzipping data
+###
+
 # Exchange rate dataset: https://www.kaggle.com/datasets/dhruvildave/currency-exchange-rates
 # Stock Market Dataset: https://www.kaggle.com/datasets/borismarjanovic/price-volume-data-for-all-us-stocks-etfs/data
 
@@ -61,7 +67,7 @@ currency_df['date'] = pandas.to_datetime(currency_df['date'])
 
 # Define date range
 START_DATE = '2006-05-16'
-END_DATE = '2016-01-01'
+END_DATE = '2020-01-01'
 
 # Create a boolean mask for rows within the date range
 currency_date_mask = (currency_df['date'] >= START_DATE) & (currency_df['date'] <= END_DATE)
