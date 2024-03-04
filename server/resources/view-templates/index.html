@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Ticker Form</title>
+    <link rel="stylesheet" href="static/test.css">
+</head>
+
+<body>
+    <div class="all">
+        <h1>We are gonna make so much money!!!!</h1>
+        <h2>Enter Stock Ticker and Date</h2>
+        <form id="stockForm">
+            <label for="stock_ticker">Stock Ticker:</label>
+            <input type="text" id="stock_ticker" name="stock_ticker" required><br><br>
+
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required><br><br>
+
+            <input type="submit" value="Submit">
+        </form>
+
+        <div id="result"></div>
+    </div>
+    <script src="static/testStockForm.js"></script>
+</body>
+
+</html>
