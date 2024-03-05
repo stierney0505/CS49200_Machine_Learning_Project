@@ -1,8 +1,9 @@
+import os
 import pandas as pd
 from typing_extensions import Self, List
 from sklearn.preprocessing import MinMaxScaler
 
-# pylint: disable=locally-disabled, line-too-long
+# pylint: disable=locally-disabled, line-too-long, broad-exception-caught, too-many-arguments
 
 class Preprocessor:
     """Handles the preprocessing of ML data"""
@@ -84,3 +85,22 @@ class Preprocessor:
         return self.df
 
         # end apply_preprocessing
+
+    def write_csv(self: Self, filename='output.csv'):
+        '''Writes self.df to a specified output file'''
+        try:
+            self.df.to_csv(os.path.join(os.getcwd() + filename), index=False)
+            print("DataFrame successfully written to CSV")
+        except Exception as e:
+            print("Error writing DataFrame to CSV:", str(e))
+
+    # end write_csv
+
+    def process(self: Self, minmax=True, moving_average=True, moving_average_window=10, rsi_index=True, out_file='output.csv'):
+        '''Driver method. Concatenates all data, applies
+        preprocessing techniques, and writes to CSV.'''
+        self.concatenate()
+        self.apply_preprocessing(minmax, moving_average, moving_average_window, rsi_index)
+        self.write_csv(out_file)
+
+    # end process
