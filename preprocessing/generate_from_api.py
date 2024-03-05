@@ -62,22 +62,24 @@ class Preprocessor:
 
         # end concatenate
 
-    def apply_preprocessing(self: Self, minmax=True, moving_average=True, rsi_index=True) -> pd.DataFrame:
+    def apply_preprocessing(self: Self, minmax=True, moving_average=True, moving_average_window=10, rsi_index=True) -> pd.DataFrame:
         """Applies various preprocessing options to the 
         final dataframe."""
         # Convert timestamp to numerical value
         self.df['timestamp'] = pd.to_numeric(self.df['timestamp'])
 
-        # Apply MinMaxing from sklean
-        if minmax:
-            scaler = MinMaxScaler()
-            self.df[self.df.columns] = scaler.fit_transform(self.df)
-
         if moving_average:
-            pass #TODO
+            for col in self.df.columns:
+                if col != 'timestamp':
+                    self.df[col] = self.df[col].rolling(moving_average_window).mean()
 
         if rsi_index:
             pass #TODO
+
+        # Apply MinMaxing from sklean (Do this last)
+        if minmax:
+            scaler = MinMaxScaler()
+            self.df[self.df.columns] = scaler.fit_transform(self.df)
 
         return self.df
 
