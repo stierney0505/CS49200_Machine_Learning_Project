@@ -50,6 +50,7 @@ class Preprocessor:
 
         # Rename columns
         for stock_f, stock_df in zip(self.stock_files, stock_frames):
+            # Drop non-numerical column
             stock_df.drop(columns=['symbol'], axis='columns', inplace=True)
             self.rename_columns(stock_f, stock_df)
 
