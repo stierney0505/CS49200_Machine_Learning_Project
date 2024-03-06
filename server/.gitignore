@@ -1,8 +1,8 @@
 # Byte-compiled / optimized / DLL files
-*.__pycache__/
-*.pyc
-*.py[cod]
-*.pyo
+**/*.__pycache__/
+**/*.pyc
+**/*.py[cod]
+**/*.pyo
 
 # C extensions
 *.so
