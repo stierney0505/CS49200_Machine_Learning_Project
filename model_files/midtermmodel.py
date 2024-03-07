@@ -18,7 +18,7 @@ import pandas as pd
 
 stocks = ["aapl", "amd", "amzn", "msft", "nvda"] #list of stocks in the out.csv file
 
-data_set = pd.read_csv("out.csv") #read the csv and grab its data
+data_set = pd.read_csv(str(Path.cwd()) + "\\out.csv") #read the csv and grab its data
 dataFrames = [] #Array to store the data frames
 
 # For loop to grab each stock's timestamp, open, high, close, volume, trade_count, and the open and close of usd-euro exchange.
@@ -80,14 +80,14 @@ def plot_learning_curves(loss, val_loss):
 np.random.seed(42)
 tf.random.set_seed(42)
 
-# Deep Sequential RNN model
+# Deep Sequential RNN model, the goal is to predict the closing price of the AAPL stock which is the 5th column in the dataframe
 model = keras.models.Sequential([
     keras.layers.SimpleRNN(30, return_sequences=True, input_shape=[None, 9]),
-    keras.layers.Dropout(0.1),
+    keras.layers.Dropout(0.1), # dropout to reduced overfitting
     keras.layers.SimpleRNN(30, return_sequences=True),
-    keras.layers.Dropout(0.1),
+    keras.layers.Dropout(0.1), # dropout to reduced overfitting
     keras.layers.SimpleRNN(30, return_sequences=True),
-    keras.layers.Dropout(0.1),
+    keras.layers.Dropout(0.1), # dropout to reduced overfitting
     keras.layers.SimpleRNN(9)
 ])
 
