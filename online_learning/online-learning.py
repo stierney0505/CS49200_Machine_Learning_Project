@@ -7,11 +7,13 @@ import importlib
 currency = importlib.import_module('api-wrapper.forex')
 stock = importlib.import_module('api-wrapper.stock')
 
-def learn(model: tf.keras.Model, ticker: str):
+def do_online_learn(model: tf.keras.Model, ticker: str):
     '''Calls API for recent stock data, saves the current
     state of the model, trains the model on the new data, 
     and then saves the newly created model.'''
-    #TODO: Save the current state of the model
+    #Save the current state of the model
+    initial_model_name = "Model_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + ".h5"
+    model.save(initial_model_name)
 
     #Call API for stocks
     today = datetime.date.today()
@@ -24,4 +26,6 @@ def learn(model: tf.keras.Model, ticker: str):
     #TODO: Train the model on API data
     model.train_on_batch()
 
-    #TODO: Save new model state
+    #Save new model state
+    updated_model_name = "Model_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + ".h5"
+    model.save(updated_model_name)
