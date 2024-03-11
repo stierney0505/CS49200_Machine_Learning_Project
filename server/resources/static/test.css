@@ -39,3 +39,7 @@ p {
 p a {
     color: lime;
 }
+
+p.extra-info {
+    font-size: 12px;
+}
