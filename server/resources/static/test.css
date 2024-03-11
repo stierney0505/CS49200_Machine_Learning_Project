@@ -1,8 +1,41 @@
 body {
     background-image: url('money.png');
+    background-color: black;
+    font-family: "JetBrains Mono", sans-serif;
+}
+
+.top-nav {
+    background-color: black;
+    overflow: hidden;
+    max-width: max-content;
+}
+
+.top-nav a {
+    float: left;
+    color: azure;
+    text-align: center;
+    padding: 18px 18px;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.top-nav a:hover {
+    background-color: darkgreen;    
+}
+
+.top-nav a.active {
+    background-color: forestgreen;
 }
 
 .all {
     color:azure;
-    align-items: center;
+    margin-left: 20px;
+}
+
+p {
+    max-width: 30em;
+}
+
+p a {
+    color: lime;
 }
