@@ -1,11 +1,15 @@
 import tensorflow as tf
-from tensorflow import keras
+from tf import keras
 import pandas as pd
 import datetime
 import importlib  
 
-currency = importlib.import_module('api-wrapper.forex')
-stock = importlib.import_module('api-wrapper.stock')
+from ..api_wrapper import get_stock_info
+
+# from CS49200_Machine_Learning_Project.api_wrapper import get_stock_info
+
+# currency = importlib.import_module('api-wrapper.forex')
+# stock = importlib.import_module('api-wrapper.stock')
 
 def do_online_learn(model: tf.keras.Model, ticker: str):
     '''Calls API for recent stock data, saves the current
@@ -14,7 +18,7 @@ def do_online_learn(model: tf.keras.Model, ticker: str):
     #Call API for stocks
     today = datetime.date.today()
     yesterday = today - datetime.timedelta(days=1)
-    new_stock = stock.stock_info_from_range([].append(ticker), start=yesterday, end=today)
+    # new_stock = stock.stock_info_from_range([].append(ticker), start=yesterday, end=today)
 
     #TODO: Call API for currency
     
