@@ -11,10 +11,6 @@ def do_online_learn(model: tf.keras.Model, ticker: str):
     '''Calls API for recent stock data, saves the current
     state of the model, trains the model on the new data, 
     and then saves the newly created model.'''
-    #Save the current state of the model
-    initial_model_name = "Model_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + ".h5"
-    model.save(initial_model_name)
-
     #Call API for stocks
     today = datetime.date.today()
     yesterday = today - datetime.timedelta(days=1)
