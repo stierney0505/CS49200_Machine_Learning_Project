@@ -5,9 +5,7 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from datetime import date, datetime, timedelta
-
-import keras
-print(keras.__version__)
+import numpy as np
 
 load_dotenv()
 
@@ -51,16 +49,38 @@ def useMLModel():
     stock = request.form.get('stock_ticker')
     date_str = request.form.get('date')
     date_input = datetime.strptime(date_str, '%Y-%m-%d')
-    if date_input < date_input.today():
+    print(datetime.today())
+    print(date_input)
+    if date_input.date() < date.today():
         prices = stock_info_from_day([stock], date_input)
-        prices.drop(['trade_count', 'vwap'], axis=1, inplace=True)
+        prices.drop(['vwap'], axis=1, inplace=True)
         return prices.reset_index().to_json()
     else:
-        prices = stock_info_from_range([stock], date.today() - timedelta(weeks=15), date.today())
-        prices.drop(['trade_count', 'vwap'], axis=1, inplace=True)
-        prices_formatted = prices.reset_index().drop(['symbol'], axis=1);
-        print(prices_formatted.shape)
+        import keras
+        from sklearn.preprocessing import MinMaxScaler
 
-        model = keras.models.load_model('./resources/aapl_lstm_model.h5')
+        prices = stock_info_from_range([stock], date.today() - timedelta(weeks=15), date.today())
+        prices.drop(['vwap'], axis=1, inplace=True)
+        prices_formatted = prices.reset_index().drop(['symbol', 'timestamp'], axis=1)
+        prices_formatted = prices_formatted[-50:]
+        # print(prices_formatted.shape)
+        # print(prices_formatted)
+
+        model = keras.models.load_model('./resources/aapl_lstm_model.keras')
+
+        scaler = MinMaxScaler(feature_range=(0, 1))
+        df = scaler.fit_transform(prices_formatted)
+        # print(df)
+
+        data_arr = np.array(df)
+        reshaped_arr = data_arr.reshape(1, 50, 6)
+        # print(reshaped_arr.shape)
         
-        return prices.reset_index().to_json()
+        prediction = model.predict(reshaped_arr)
+        unscaled = scaler.inverse_transform(prediction)
+        print(unscaled.shape)
+
+        outputList = [stock, date_input]
+        outputList.extend(unscaled[0].tolist())
+
+        return outputList
