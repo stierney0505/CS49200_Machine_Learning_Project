@@ -38,8 +38,10 @@ def do_online_learn(ticker: str):
     df.iloc[:, :] = reshaped_array
 
     #Train the model on API data
+    y_df = df.shift(-1) # Shift the DataFrame by one time step to create the target data
+    y_df.dropna(inplace=True) # Drop the last row, as it will contain NaN values
 
-    model.train_on_batch()
+    model.train_on_batch(df, y_df)
 
     #Save new model state
     updated_model_name = ticker + '_lstm_model_recent.h5'
