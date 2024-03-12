@@ -63,7 +63,8 @@ def useMLModel():
         if stock.lower() not in allowed_stocks:
             return 'Invalid stock ticker'
 
-        import keras
+        import keras 
+        print(keras.__version__)
         from sklearn.preprocessing import MinMaxScaler
 
         # Get the stock information from the past 50 days 
@@ -74,14 +75,16 @@ def useMLModel():
         prices_formatted = prices_formatted[-50:]
 
         # Load the model
-        model = keras.models.load_model('./resources/' + stock.lower() + '_lstm_model.keras')
+        model = keras.models.load_model('./resources/final_lstm_model.keras')
 
         # Scale the stock data
         scaler = MinMaxScaler(feature_range=(0, 1))
         df = scaler.fit_transform(prices_formatted)
         data_arr = np.array(df)
         reshaped_arr = data_arr.reshape(1, 50, 6)
-        
+        print(reshaped_arr.shape)
+        print(reshaped_arr)
+        print('./resources/' + stock.lower() + '_lstm_model.keras')
         # Predict using the ML model
         prediction = model.predict(reshaped_arr)
 
