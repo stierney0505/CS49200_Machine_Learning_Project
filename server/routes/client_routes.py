@@ -11,6 +11,14 @@ client_bp = Blueprint('client-routes', __name__, url_prefix='/client', template_
 def home():
     return render_template('index.html')
 
+@client_bp.route('/supported-stocks', methods=['GET'])
+def supported_stocks():
+    return render_template('supported-stocks.html')
+
+@client_bp.route('/supported-currencies', methods=['GET'])
+def supported_currencies():
+    return render_template('supported-currencies.html')
+
 @client_bp.route('/static/<path:filename>', methods=['GET'])
 def serve_static(filename):
     static_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'resources', 'static')
