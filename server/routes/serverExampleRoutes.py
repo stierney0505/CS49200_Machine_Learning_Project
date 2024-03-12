@@ -69,7 +69,7 @@ def useMLModel():
 
         # Get the stock information from the past 50 days 
         # open, high, low, close, volume
-        prices = stock_info_from_range([stock], date.today() - timedelta(weeks=15), date.today())
+        prices = stock_info_from_range([stock], date(year=2024, month=3, day=11) - timedelta(weeks=15), date(year=2024, month=3, day=11))
         prices.drop(['vwap'], axis=1, inplace=True)
         prices_formatted = prices.reset_index().drop(['symbol', 'timestamp'], axis=1)
         prices_formatted = prices_formatted[-50:]
