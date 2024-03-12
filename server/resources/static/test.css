@@ -43,3 +43,12 @@ p a {
 p.extra-info {
     font-size: 12px;
 }
+
+th, td {
+    background-color: black;
+    padding: 18px;
+}
+
+table, th, td {
+    border: 1px solid azure;
+}
