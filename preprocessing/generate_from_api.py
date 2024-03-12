@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from typing_extensions import Self, List
 from sklearn.preprocessing import MinMaxScaler
+import joblib
 
 # pylint: disable=locally-disabled, line-too-long, broad-exception-caught, too-many-arguments
 
@@ -119,3 +120,18 @@ class Preprocessor:
         self.write_csv(out_file)
 
     # end process
+    
+    def save_scalers(self: Self):
+        """Save scaler objects to files"""
+        os.makedirs(self.scaler_directory, exist_ok=True)
+
+        for col, scaler in self.scalers.items():
+            scaler_filename = os.path.join(self.scaler_directory, col + '_scaler.joblib')
+            joblib.dump(scaler, scaler_filename)
+    
+    def load_scalers(self: Self):
+        """Load scaler objects from files"""
+        for col in self.df.columns:
+            if col != 'timestamp':
+                scaler_filename = os.path.join(self.scaler_directory, col + '_scaler.joblib')
+                self.scalers[col] = joblib.load(scaler_filename)

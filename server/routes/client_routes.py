@@ -9,7 +9,6 @@ client_bp = Blueprint('client-routes', __name__, url_prefix='/client', template_
 
 @client_bp.route('/', methods=['GET'])
 def home():
-    print(templates_path)
     return render_template('index.html')
 
 @client_bp.route('/static/<path:filename>', methods=['GET'])
