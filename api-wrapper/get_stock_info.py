@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 load_dotenv()
 
@@ -37,17 +37,22 @@ def stock_info_from_day(symbols: list[str], day: datetime):
 
   return apple_bars.df
 
+def latest_stock_csvs(symbols: list[str]):
+  # for up-to-date date
+  endDate = date.today()
+
+  # Get Stock information using 1 request
+  df = stock_info_from_range(symbols=symbols, start=datetime(2019, 1, 1), end=endDate)
+
+  # Make a dictionary of dataframes where each key is a stock ticker (defined in stocks variable)
+  # and each value is the dataframe with that stock's information
+  # Note: symbol (stock ticker) is a Multi-Index, not a column value
+  df_grouped = df.groupby(level=0)
+  dfs_dict = { group: group_df for group, group_df in df_grouped }
+
+  # download each stock dataframe as a CSV file
+  for stock in symbols:
+    dfs_dict[stock].to_csv(stock.lower() +'.csv')
+
 stocks = ['AAPL', 'AMD', 'AMZN', 'MSFT', 'NVDA']
-
-# Get Stock information using 1 request
-df = stock_info_from_range(stocks, start=datetime(2019, 1, 1), end=datetime(2024, 3, 11))
-
-# Make a dictionary of dataframes where each key is a stock ticker (defined in stocks variable)
-# and each value is the dataframe with that stock's information
-# Note: symbol (stock ticker) is a Multi-Index, not a column value
-df_grouped = df.groupby(level=0)
-dfs_dict = { group: group_df for group, group_df in df_grouped }
-
-# download each stock dataframe as a CSV file
-for stock in stocks:
-  dfs_dict[stock].to_csv(stock.lower() +'.csv')
+latest_stock_csvs(stocks)
