@@ -1,6 +1,7 @@
 import csv
 import os
 import pandas as pd
+import numpy as np
 
 # Convert stock/currency data into dataframes
 # Convert to shape of (Stock, Date, Features)
@@ -16,6 +17,8 @@ def read_dataframes_from_csv(files):
             # Drop any columns that do not match the specified column names
             required_columns = ['timestamp', 'open', 'high', 'low', 'close']
             df = df[required_columns]
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df['timestamp'] = df['timestamp'].dt.strftime('%Y-%m-%d')
             # Extract the stock/currency name from the file name without extension
             stock_name = os.path.splitext(os.path.basename(file))[0]
             # Add a new column for Stock/Currency
@@ -31,6 +34,7 @@ csv_files = ['AAPL.csv', 'AMD.csv', 'AMZN.csv', 'aud.csv', 'cad.csv', 'cny.csv',
 
 dataframes = read_dataframes_from_csv(csv_files)
 
+# Concatenate all dataframes into a single dataframe
 combined_df = pd.concat(dataframes.values(), ignore_index=True)
 
-print(combined_df.shape)
+combined_df.to_csv('out.csv', index=False)
