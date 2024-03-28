@@ -1,3 +1,7 @@
 # Global
 **/.env
+
+# API Wrapper
 api-wrapper/**/*.csv
+api-wrapper/**/*.zip
+api-wrapper/kaggle.json
