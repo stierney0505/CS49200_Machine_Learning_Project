@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import numpy as np
 import keras
+from sklearn.preprocessing import MinMaxScaler
 
 # Convert stock/currency data into dataframes
 # Convert to shape of (Stock, Date, Features)
@@ -32,6 +33,24 @@ def read_dataframes_from_csv(files):
             print(f"Warning: {file} does not exist. Skipping.")
     return dataframes
 
+def preprocess_dataframes(dataframes, scaler):
+    '''Takes in a list of dataframes and 
+    applies a rolling average and 
+    MinMax scaling.'''
+
+    # Rolling/Moving Average
+    moving_average_window = 10
+
+    for frame in dataframes:
+        for col in frame:
+            frame[col] = frame[col].rolling(moving_average_window).mean()
+
+    # Min-Max scaling (Normalization)
+    for frame in dataframes:
+        frame[frame.columns] = scaler.fit_transform(frame) ###
+
+    return dataframes
+
 
 def df_list_to_time_series(dfs):
     """Convert a list of dataframes into an array
@@ -43,8 +62,8 @@ def df_list_to_time_series(dfs):
         time_df = keras.utils.timeseries_dataset_from_array(
             data=data,
             targets=df["close"],
-            sequence_length=7,  # Because the data is 1 day per step in the dataset? Maybe?
-            batch_size=32,
+            sequence_length=5,  # Number of days in one batch.
+            batch_size=32, # Number of sequences of length 'sequence_length' in one 'element' of the timeseries
         )
         timeseries_list.append(time_df)
 
@@ -66,6 +85,9 @@ csv_files = [
 
 df_list = read_dataframes_from_csv(csv_files)
 
+sc = MinMaxScaler()
+df_list = preprocess_dataframes(df_list, sc)
+
 timeseries = df_list_to_time_series(df_list)
 
 # timeseries_array = np.asanyarray(timeseries)
@@ -73,4 +95,4 @@ timeseries = df_list_to_time_series(df_list)
 # print(timeseries[0])
 
 for batch in timeseries[0]:
-    print(batch[0].shape)
+    print(batch[0])
