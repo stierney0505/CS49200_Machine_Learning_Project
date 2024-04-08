@@ -5,10 +5,6 @@ import numpy as np
 import keras
 from sklearn.preprocessing import MinMaxScaler
 
-# Convert stock/currency data into dataframes
-# Convert to shape of (Stock, Date, Features)
-# Return
-
 
 def read_dataframes_from_csv(files):
     """Convert a list of CSV files into a list of dataframes that
@@ -33,10 +29,36 @@ def read_dataframes_from_csv(files):
             print(f"Warning: {file} does not exist. Skipping.")
     return dataframes
 
+
+def calculate_rsi(dataframe):
+    '''Calculates the relative strength index of
+    a stock from its dataframe.'''
+    change = dataframe['close'].diff()
+    change.dropna(inplace=True)
+
+    change_up = change.copy()
+    change_down = change.copy()
+
+    change_up[change_up < 0] = 0
+    change_down[change_down > 0] = 0
+
+    avg_up = change_up.rolling(14).mean()
+    avg_down = change_down.rolling(14).mean().abs()
+
+    rsi = 100 * avg_up / (avg_up + avg_down)
+
+    return rsi
+
+
 def preprocess_dataframes(dataframes, scaler):
     '''Takes in a list of dataframes and 
     applies a rolling average and 
     MinMax scaling.'''
+
+    # RSI calculation
+
+    for frame in dataframes:
+        frame['rsi'] = calculate_rsi(frame)
 
     # Rolling/Moving Average
     moving_average_window = 10
@@ -47,7 +69,11 @@ def preprocess_dataframes(dataframes, scaler):
 
     # Min-Max scaling (Normalization)
     for frame in dataframes:
-        frame[frame.columns] = scaler.fit_transform(frame) ###
+        frame[frame.columns] = scaler.fit_transform(frame)
+
+    # Drop NA values
+    for frame in dataframes:
+        frame.dropna(inplace=True)
 
     return dataframes
 
@@ -63,7 +89,7 @@ def df_list_to_time_series(dfs):
             data=data,
             targets=df["close"],
             sequence_length=5,  # Number of days in one batch.
-            batch_size=32, # Number of sequences of length 'sequence_length' in one 'element' of the timeseries
+            batch_size=32,  # Number of sequences of length 'sequence_length' in one 'element' of the timeseries
         )
         timeseries_list.append(time_df)
 
@@ -89,8 +115,6 @@ sc = MinMaxScaler()
 df_list = preprocess_dataframes(df_list, sc)
 
 timeseries = df_list_to_time_series(df_list)
-
-# timeseries_array = np.asanyarray(timeseries)
 
 # print(timeseries[0])
 
