@@ -1,3 +1,4 @@
 # Global
 **/.env
 api-wrapper/**/*.csv
+preprocessing/**/*.csv
