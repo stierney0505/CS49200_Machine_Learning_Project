@@ -2,3 +2,5 @@
 **/.env
 api-wrapper/**/*.csv
 preprocessing/**/*.csv
+api-wrapper/**/*.zip
+api-wrapper/kaggle.json
