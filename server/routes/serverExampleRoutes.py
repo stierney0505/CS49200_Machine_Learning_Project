@@ -7,6 +7,14 @@ from alpaca.data.timeframe import TimeFrame
 from datetime import date, datetime, timedelta
 import numpy as np
 
+import io
+import base64
+
+import matplotlib as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+
 load_dotenv()
 
 client = StockHistoricalDataClient(os.getenv('API_KEY'), os.getenv('API_SECRET'))
@@ -84,3 +92,38 @@ def useMLModel():
     outputList = [stock, date_str]
     outputList.extend(unscaled[0].tolist())
     return outputList
+
+@serverExample_bp.route('/make-plot', methods=['POST'])
+def getPlot():
+    stock = request.form.get('stock_ticker')
+    date_str = request.form.get('date')
+
+    today = datetime.today()
+    numdays = 7
+
+    prices = stock_info_from_range([stock], end=today, start=(today - timedelta(days=numdays)))
+    dates = [(today - timedelta(days=x)) for x in range(numdays)]
+
+    date_strings = []
+    for date in dates:
+        date_strings.append(datetime.strptime(date, '%Y-%m-%d')) # Just hope it works man
+
+    # Generate plot
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_title(str(stock))
+    axis.set_xlabel("Date")
+    axis.set_ylabel("Close in USD")
+    axis.grid()
+    axis.plot(date_strings, prices['close'], "ro-")
+    
+    # Convert plot to PNG image
+    pngImage = io.BytesIO()
+    FigureCanvas(fig).print_png(pngImage)
+    
+    # Encode PNG image to base64 string
+    pngImageB64String = "data:image/png;base64,"
+    pngImageB64String += base64.b64encode(pngImage.getvalue()).decode('utf8')
+    
+    return render_template("image.html", image=pngImageB64String)
+
