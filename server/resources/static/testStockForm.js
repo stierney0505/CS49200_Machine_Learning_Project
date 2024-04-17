@@ -59,7 +59,7 @@ document.getElementById("stockForm").addEventListener("submit", function(event) 
             })
             .then(data => {
                 let img = new Image();
-                img.src = data
+                img.src = '/static/plot.png'
                 document.getElementById('result').appendChild(img)
             })
 
