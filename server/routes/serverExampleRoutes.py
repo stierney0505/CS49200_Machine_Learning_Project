@@ -7,6 +7,9 @@ from alpaca.data.timeframe import TimeFrame
 from datetime import date, datetime, timedelta
 import numpy as np
 
+from dateutil.parser import parse
+from dateutil.rrule import rrule, DAILY, MO, TU, WE, TH, FR
+
 import io
 import base64
 
@@ -96,13 +99,21 @@ def useMLModel():
 @serverExample_bp.route('/make-plot', methods=['POST'])
 def getPlot():
     stock = request.form.get('stock_ticker')
-    date_str = request.form.get('date')
 
     today = datetime.today()
     numdays = 7
 
     prices = stock_info_from_range([stock], end=today, start=(today - timedelta(days=numdays)))
     dates = [(today - timedelta(days=x)).strftime('%Y-%m-%d') for x in range(numdays)]
+
+    tmp_dates = rrule(
+        DAILY,
+        byweekday=(MO, TU, WE, TH, FR),
+        dtstart=parse(dates[-1]),
+        until=parse(dates[0])
+    )
+
+    final_dates = [date_.strftime('%Y-%m-%d') for date_ in tmp_dates ]
 
     # Generate plot
     fig = Figure()
@@ -111,8 +122,8 @@ def getPlot():
     axis.set_xlabel("Date")
     axis.set_ylabel("Close")
     axis.grid()
-    axis.plot(dates, prices['close'], "ro-")
-    
+    axis.plot(final_dates, prices['close'], "ro-")
+    print("test")
     # Save the plot as a file
     filename = 'plot.png'
     filepath = os.path.join('resources', 'static', filename)
