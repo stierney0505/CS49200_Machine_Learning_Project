@@ -101,7 +101,7 @@ def getPlot():
     stock = request.form.get('stock_ticker')
 
     today = datetime.today()
-    numdays = 7
+    numdays = 21
 
     prices = stock_info_from_range([stock], end=today, start=(today - timedelta(days=numdays)))
     dates = [(today - timedelta(days=x)).strftime('%Y-%m-%d') for x in range(numdays)]
@@ -116,17 +116,21 @@ def getPlot():
     final_dates = [date_.strftime('%Y-%m-%d') for date_ in tmp_dates ]
 
     # Generate plot
-    fig = Figure()
+    fig = Figure(facecolor='black')
     axis = fig.add_subplot(1, 1, 1)
     axis.set_title(str(stock))
     axis.set_xlabel("Date")
     axis.set_ylabel("Close")
+    for tick in axis.get_xticklabels():
+        tick.set_rotation(25)
     axis.grid()
     axis.plot(final_dates, prices['close'], "ro-")
-    print("test")
+    axis.set_facecolor('xkcd:black')
+    axis.tick_params(axis='y', colors='white')
+    axis.tick_params(axis='x', colors='white')
     # Save the plot as a file
     filename = 'plot.png'
     filepath = os.path.join('resources', 'static', filename)
     fig.savefig(filepath)
 
-    return render_template("")
+    return ('', 200)
