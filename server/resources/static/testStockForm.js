@@ -51,6 +51,19 @@ document.getElementById("stockForm").addEventListener("submit", function(event) 
 
             document.getElementById('result').appendChild(resultStr);
             document.getElementById('result').appendChild(table);
+
+            // Getting data plot
+            fetch('/serverExample/make-plot', {
+                method: 'POST',
+                body: formData
+            })
+            .then(() => {
+                let img = new Image();
+                img.src = '/client/static/plot.png'
+                document.getElementById('result').appendChild(img)
+            })
+
+
             return;
         }
         // Create a table with the data from the Alpaca API
@@ -82,6 +95,16 @@ document.getElementById("stockForm").addEventListener("submit", function(event) 
 
         document.getElementById('result').appendChild(resultStr);
         document.getElementById('result').appendChild(table);
+
+        fetch('/serverExample/make-plot', {
+            method: 'POST',
+            body: formData
+        })
+        .then(() => {
+            let img = new Image();
+            img.src = '/client/static/plot.png'
+            document.getElementById('result').appendChild(img)
+        })
     })
     .catch(error => {
         console.error('Error:', error);

@@ -9,7 +9,6 @@ from routes import client_routes, serverExampleRoutes
 # load_dotenv()
 
 app = Flask(__name__)
-
 # Initialize our ngrok settings into Flask
 # app.config.from_mapping(
 #     BASE_URL="http://localhost:5000",
@@ -33,9 +32,19 @@ app = Flask(__name__)
 #     # init_webhooks(public_url)
 
 # # ... Initialize Blueprints and the rest of our app
+@app.after_request
+def set_response_headers(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 
 app.register_blueprint(client_routes.client_bp)
 app.register_blueprint(serverExampleRoutes.serverExample_bp)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
