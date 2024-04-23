@@ -44,6 +44,10 @@ p.extra-info {
     font-size: 12px;
 }
 
+.space-below {
+    margin-bottom: 1em;
+}
+
 th, td {
     background-color: black;
     padding: 18px;
