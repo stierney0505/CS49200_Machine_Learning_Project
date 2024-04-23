@@ -15,16 +15,30 @@
     <nav class="top-nav">
         <a class="active" href="/client">Make Some Money</a>
         <a href="/client/supported-stocks">Stocks</a>
-        <a href="/client/supported-currencies">Currencies</a>
     </nav>
     <div class="all">
         <h1>This is not financial advice.</h1>
-        <h2>Enter Stock Ticker and Date</h2>
+        <h2>Enter Stock Ticker, Date, and </h2>
         <form id="stockForm">
             <label for="stock_ticker">Stock Ticker:</label>
             <input type="text" id="stock_ticker" name="stock_ticker" required>
+
             <p class="extra-info">For a list of supported stocks, see <a href="/client/supported-stocks">this page</a>.</p>
 
+            <label for="model-type">Model Type:</label>
+            <select name="model-type" id="model-type" class="space-below">
+                <option value="lstm">Long Short-Term Memory (LSTM)</option>
+                <option value="gru">Gated Recurrent Unit</option>
+            </select>
+            <br>
+            <label for="moving-average">Predict Using Moving Average?</label>
+            <br>
+            <input type="radio" id="ma-yes" name="moving-average" value="yes">
+            <label for="ma-yes">Yes</label>
+            <br>
+            <input type="radio" id="ma-no" name="moving-average" value="no" class="space-below">
+            <label for="ma-no">No</label>
+            <br>
             <label for="date">Date:</label>
             <input type="date" id="date" name="date" required><br><br>
 
