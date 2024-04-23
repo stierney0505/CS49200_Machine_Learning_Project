@@ -7,17 +7,27 @@ document.getElementById("stockForm").addEventListener("submit", function(event) 
     })
     .then(response => response.text())
     .then(data => {
+        console.log(data)
         // Error getting stock information due to invalid ticker
         if (data === 'Invalid stock ticker') {
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('result').innerText = 'Error: ' + data;
+            return;
+        } else if (data === 'Invalid date: Must be a weekend') {
             document.getElementById('result').innerHTML = '';
             document.getElementById('result').innerText = 'Error: ' + data;
             return;
         }
         dataObj = JSON.parse(data);
         // The output for a future date is an array with the following information:
-        // symbol, timestamp, open price, high price, low price, close price, volume, and trade count 
+        // symbol, predicted close price 
         if (dataObj instanceof Array) {
-            const headings = ['Symbol', 'Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume', 'Trade Count'];
+            const headings = ['Symbol']
+            if (dataObj[0] === 'Today') {
+                headings.push('Predicted Close Price for ' + dataObj[0]);
+            } else {
+                headings.push('Predicted Close Price in ' + dataObj[0]);
+            }
 
             // Create a table with the information
             const table = document.createElement('table');
@@ -27,21 +37,16 @@ document.getElementById("stockForm").addEventListener("submit", function(event) 
             const tbody = table.createTBody();
             const bodyRow = tbody.insertRow(0);
 
-            document.getElementById('result').innerText = dataObj;
-            for (let i = 0; i < dataObj.length; i++) {
+            for (let i = 0; i < headings.length; i++) {
                 const th = document.createElement('th');
                 th.innerHTML = headings[i];
                 headRow.appendChild(th);
 
                 const td = bodyRow.insertCell();
                 if (i === 0) {
-                    td.innerHTML = dataObj[i].toUpperCase();
-                } else if (i === 1) {
-                    let startDate = new Date(dataObj[i]);
-                    startDate = new Date(startDate.getTime() + (startDate.getTimezoneOffset() * 60000));
-                    td.innerHTML = startDate.toDateString();
+                    td.innerHTML = dataObj[i+1];
                 } else {
-                    td.innerHTML = Math.round(dataObj[i] * 100) / 100;
+                    td.innerHTML = Math.round(dataObj[i+1] * 100) / 100;
                 }
             }
             document.getElementById('result').innerHTML = '';
@@ -62,7 +67,6 @@ document.getElementById("stockForm").addEventListener("submit", function(event) 
                 img.src = '/client/static/plot.png'
                 document.getElementById('result').appendChild(img)
             })
-
 
             return;
         }
