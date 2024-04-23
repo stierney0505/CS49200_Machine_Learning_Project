@@ -5,7 +5,13 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from datetime import date, datetime, timedelta
+
 import numpy as np
+import pandas as pd
+import pickle
+import tensorflow as tf
+import keras
+from keras.losses import MeanSquaredError
 
 from dateutil.parser import parse
 from dateutil.rrule import rrule, DAILY, MO, TU, WE, TH, FR
@@ -29,24 +35,49 @@ def stock_info_from_range(symbols: list[str], start: datetime, end: datetime):
         start=start,
         end=end
     )
-
-    apple_bars = client.get_stock_bars(request_params)
-
-    return apple_bars.df
+    bars = client.get_stock_bars(request_params)
+    return bars.df
 
 def stock_info_from_day(symbols: list[str], day: datetime):
     end = day + timedelta(days=1)
-
     request_params = StockBarsRequest(
         symbol_or_symbols=symbols,
         timeframe=TimeFrame.Day,
         start=day,
         end=end
     )
+    bars = client.get_stock_bars(request_params)
+    return bars.df
 
-    apple_bars = client.get_stock_bars(request_params)
+def calculate_moving_average(data, window_size=20):
+    """
+    Calculates the moving average for the specified window size.
 
-    return apple_bars.df
+    Parameters:
+        data (pd.DataFrame): DataFrame with stock data.
+        window_size (int): The size of the moving window.
+
+    Returns:
+        pd.DataFrame: DataFrame with moving average added as a new column.
+    """
+    data['Moving_Average'] = data['Close'].rolling(window=window_size).mean()
+    return data
+
+def get_model_day(numDays: int):
+    if numDays == 1:
+        return ('Today', str(numDays) + 'day')
+    elif numDays == 2:
+        return ('1 Day', str(numDays) + 'day')
+    elif numDays >= 2 and numDays <= 5:
+        return (str(numDays - 1) + ' Days', str(numDays) + 'day')
+    elif numDays <= 14:
+        return ('2 Weeks', '10day')
+    elif numDays <= 21:
+        return ('3 Weeks', '15day')
+    elif numDays <= 25:
+        return ('1 Month', '20day')
+    else:
+        return ('1 Month', '20day')
 
 serverExample_bp = Blueprint('serverExample', __name__, url_prefix='/serverExample')
 
@@ -57,44 +88,103 @@ def helloworld():
 
 @serverExample_bp.route('/predictStockData', methods=['POST'])
 def useMLModel():
+
     # Get form data
     stock = request.form.get('stock_ticker')
+    model_type = request.form.get('model-type')
+    moving_average = request.form.get('moving-average')
     date_str = request.form.get('date')
     date_input = datetime.strptime(date_str, '%Y-%m-%d')
+    today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+    yesterday = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+    day_diff = (date_input - yesterday).days
+    res_str, model_day = get_model_day(day_diff)
 
-    # Any date in the past -> output the date's stock information using Alpaca API
-    if date_input.date() < date.today():
-        prices = stock_info_from_day([stock], date_input)
-        prices.drop(['vwap'], axis=1, inplace=True)
-        return prices.reset_index().to_json()
     # Any date in the future -> predict using ML
     # Check that the stock is on the allowed list
-    allowed_stocks = ['aapl', 'amd', 'amzn', 'msft', 'nvda']
-    if stock.lower() not in allowed_stocks:
+    allowed_stocks = pd.read_csv('./resources/accepted_stocks.csv')['Symbol'].tolist()
+    if stock.upper() not in allowed_stocks:
         return 'Invalid stock ticker'
-    import keras
-    from sklearn.preprocessing import MinMaxScaler
-    # Get the stock information from the past 50 days 
-    # open, high, low, close, volume
-    prices = stock_info_from_range([stock], date(year=2024, month=3, day=11) - timedelta(weeks=15), date(year=2024, month=3, day=11))
-    prices.drop(['vwap'], axis=1, inplace=True)
-    prices_formatted = prices.reset_index().drop(['symbol', 'timestamp'], axis=1)
-    prices_formatted = prices_formatted[-50:]
-    # Load the model
-    model = keras.models.load_model('./resources/' + stock.lower() + '_lstm_model.keras')
-    # Scale the stock data
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    df = scaler.fit_transform(prices_formatted)
-    data_arr = np.array(df)
-    reshaped_arr = data_arr.reshape(1, 50, 6)
-    
-    # Predict using the ML model
-    prediction = model.predict(reshaped_arr)
-    # Unscale the data and return the data as a response
-    unscaled = scaler.inverse_transform(prediction)
-    outputList = [stock, date_str]
-    outputList.extend(unscaled[0].tolist())
-    return outputList
+
+    # Any date in the past -> output the date's stock information using Alpaca API
+    if date_input < today:
+        if date_input.weekday() < 5:
+            prices = stock_info_from_day([stock], date_input)
+            prices.drop(['vwap'], axis=1, inplace=True)
+            return prices.reset_index().to_json()
+        else:
+            return 'Invalid date: Must be a weekend'
+
+    # Get the stock information from the past 25 days 
+    # open, high, low, close, volume (possibly moving average)
+    if moving_average == 'yes':
+        prices = stock_info_from_range([stock], yesterday - timedelta(weeks=15), yesterday)
+        prices.drop(['vwap'], axis=1, inplace=True)
+        prices_formatted = prices.reset_index().drop(['symbol', 'timestamp'], axis=1)
+        prices_fixed = pd.DataFrame({
+            'Close': prices_formatted['close'].copy(),
+            'High': prices_formatted['high'].copy(),
+            'Low': prices_formatted['low'].copy(),
+            'Open': prices_formatted['open'].copy(),
+            'Volume': prices_formatted['volume'].copy()
+        })
+        prices_fixed = calculate_moving_average(prices_fixed, 15)
+        prices_fixed = prices_fixed[-25:]
+
+        with open('./resources/scaler.pkl', 'rb') as f:
+            scaler = pickle.load(f)
+        prices_scaled = scaler.transform(prices_fixed)
+        prices_scaled = prices_scaled.reshape(1, 25, 6)
+
+        if model_type == 'lstm':
+            model_string = './resources/LSTM_MODELS/' + model_day + '_' + model_type + '_MA_model.h5'
+        else:
+            model_string = './resources/GRU_MODELS/' + model_day + '_' + model_type + '_MA_model.h5'
+        print(model_string)
+        model = keras.models.load_model(model_string)
+        prediction = model.predict(prices_scaled)
+
+        prediction = [prediction[0][0], 0,0,0,0,0]
+        prediction = np.array(prediction)
+        prediction = prediction.reshape(1, -1)
+        prediction_unscaled = scaler.inverse_transform(prediction)
+        print(prediction_unscaled[0][0])
+
+        return [res_str, stock.upper(), str(prediction_unscaled[0][0])]
+    else:
+        prices = stock_info_from_range([stock], yesterday - timedelta(weeks=10), yesterday)
+        prices.drop(['vwap'], axis=1, inplace=True)
+        prices_formatted = prices.reset_index().drop(['symbol', 'timestamp'], axis=1)
+        prices_fixed = pd.DataFrame({
+            'Close': prices_formatted['close'].copy(),
+            'High': prices_formatted['high'].copy(),
+            'Low': prices_formatted['low'].copy(),
+            'Open': prices_formatted['open'].copy(),
+            'Volume': prices_formatted['volume'].copy()
+        })
+        prices_fixed = prices_fixed[-25:]
+
+        with open('./resources/scaler_no_MA.pkl', 'rb') as f:
+            scaler_no_MA = pickle.load(f)
+        prices_scaled = scaler_no_MA.transform(prices_fixed)
+        prices_scaled = prices_scaled.reshape(1, 25, 5)
+
+        if model_type == 'lstm':
+            model_string = './resources/LSTM_MODELS/no_average/' + model_day + '_' + model_type + '_no_MA_model.h5'
+        else:
+            model_string = './resources/GRU_MODELS/no_average/' + model_day + '_' + model_type + '_no_MA_model.h5'
+
+        print(model_string)
+        model = keras.models.load_model(model_string)
+        prediction = model.predict(prices_scaled)
+        
+        prediction = [prediction[0][0], 0,0,0,0]
+        prediction = np.array(prediction)
+        prediction = prediction.reshape(1, -1)
+        prediction_unscaled = scaler_no_MA.inverse_transform(prediction)
+        print(prediction_unscaled[0][0])
+
+        return [res_str, stock.upper(), str(prediction_unscaled[0][0])]
 
 @serverExample_bp.route('/make-plot', methods=['POST'])
 def getPlot():
@@ -118,9 +208,8 @@ def getPlot():
     # Generate plot
     fig = Figure(facecolor='black')
     axis = fig.add_subplot(1, 1, 1)
-    axis.set_title(str(stock))
-    axis.set_xlabel("Date")
-    axis.set_ylabel("Close")
+    axis.set_title(str(stock) + ' Stock Price from the Past 20 Days')
+    axis.set_ylabel("Close Price in USD")
     for tick in axis.get_xticklabels():
         tick.set_rotation(25)
     axis.grid()
@@ -128,6 +217,8 @@ def getPlot():
     axis.set_facecolor('xkcd:black')
     axis.tick_params(axis='y', colors='white')
     axis.tick_params(axis='x', colors='white')
+    axis.yaxis.label.set_color('white')
+    axis.title.set_color('white')
     # Save the plot as a file
     filename = 'plot.png'
     filepath = os.path.join('resources', 'static', filename)
